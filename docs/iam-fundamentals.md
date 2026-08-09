@@ -1,6 +1,11 @@
 # Day 5 – IAM Fundamentals
 
-## Objective
+## IAM Policy Inspection
+
+Command used:
+
+```bash
+gcloud projects get-iam-policy cloudcost-ai## Objective
 
 Understand the basics of Identity and Access Management (IAM) in Google Cloud and inspect the IAM policy of the CloudCost AI project.
 
@@ -23,6 +28,12 @@ User
 → roles/owner
 → CloudCost AI Project
 
+## IAM Policy Inspection
+
+Command used:
+
+```bash
+gcloud projects get-iam-policy cloudcost-ai
 ## IAM Policy Inspection
 
 Command used:
