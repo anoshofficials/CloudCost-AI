@@ -216,3 +216,10 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# CloudCost-AI local environment
+.env
+.venv/
+venv/
+__pycache__/
+*.pyc
