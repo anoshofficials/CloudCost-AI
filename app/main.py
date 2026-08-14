@@ -1,3 +1,17 @@
+from app.auth import create_access_token
+from app.schemas.auth import LoginRequest, TokenResponse
+from app.security import verify_password
+
+
+
+
+
+
+
+
+
+
+
 from fastapi import Depends, FastAPI, HTTPException
 from sqlalchemy.orm import Session
 
@@ -27,6 +41,84 @@ def root():
     return {
         "message": f"{settings.APP_NAME} is running!"
     }
+
+
+
+@app.post("/auth/login", response_model=TokenResponse)
+def login(
+    credentials: LoginRequest,
+    db: Session = Depends(get_db),
+):
+    user = get_user_by_email(db, credentials.email)
+
+    if not user:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid email or password",
+        )
+
+    if not verify_password(credentials.password, user.password_hash):
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid email or password",
+        )
+
+    access_token = create_access_token(
+        {"sub": user.email}
+    )
+
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 @app.get("/health")
