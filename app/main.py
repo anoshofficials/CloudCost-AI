@@ -2,25 +2,15 @@ from app.auth import create_access_token
 from app.schemas.auth import LoginRequest, TokenResponse
 from app.security import verify_password
 
-
-
-
-
-
-
-
-
-
-
 from fastapi import Depends, FastAPI, HTTPException
 from sqlalchemy.orm import Session
+from app.auth import create_access_token, get_current_user_email
 
 from app.config import settings
 from app.crud import create_user, get_user, get_user_by_email, get_users
 from app.database import SessionLocal
 from app.schemas.user import UserCreate, UserResponse
-
-
+from app.auth import create_access_token, get_current_user_email
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
@@ -72,55 +62,6 @@ def login(
         "token_type": "bearer",
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 @app.get("/health")
 def health_check():
     return {
@@ -151,6 +92,21 @@ def create_user_api(
         password=user.password,
     )
 
+@app.get("/users/me", response_model=UserResponse)
+def get_current_user(
+    email: str = Depends(get_current_user_email),
+    db: Session = Depends(get_db),
+):
+    user = get_user_by_email(db, email)
+
+    if not user:
+        raise HTTPException(
+            status_code=401,
+            detail="User not found",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    return user
 
 @app.get("/users/{user_id}", response_model=UserResponse)
 def get_user_api(
@@ -167,10 +123,9 @@ def get_user_api(
 
     return user
 
-
 @app.get("/users", response_model=list[UserResponse])
 def list_users(
-    skip: int = 0,
+   skip: int = 0,
     limit: int = 100,
     db: Session = Depends(get_db),
 ):
