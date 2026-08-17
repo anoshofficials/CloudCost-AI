@@ -8,7 +8,10 @@ class UserCreate(BaseModel):
     username: str
     password: str
 
-
+class UserUpdate(BaseModel):
+    username: str | None = None
+    is_active: bool | None = None
+    role: str | None = None
 class UserResponse(BaseModel):
     id: int
     email: EmailStr

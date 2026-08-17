@@ -1,13 +1,20 @@
 from fastapi import Depends, FastAPI, HTTPException
 from sqlalchemy.orm import Session
-
+from sqlalchemy.exc import IntegrityError
 from app.auth import create_access_token, get_current_user_email
 from app.config import settings
-from app.crud import create_user, get_user, get_user_by_email, get_users
+from app.crud import (
+    create_user,
+    get_user,
+    get_user_by_email,
+    get_users,
+    update_user,
+    deactivate_user,
+)
 from app.database import SessionLocal
 from app.models.user import User
 from app.schemas.auth import LoginRequest, TokenResponse
-from app.schemas.user import UserCreate, UserResponse
+from app.schemas.user import UserCreate, UserResponse, UserUpdate
 from app.security import verify_password
 app = FastAPI(
     title=settings.APP_NAME,
@@ -153,3 +160,47 @@ def list_users(
     db: Session = Depends(get_db),
 ):
     return get_users(db, skip=skip, limit=limit)
+@app.patch("/admin/users/{user_id}", response_model=UserResponse)
+def update_user_admin(
+    user_id: int,
+    user_data: UserUpdate,
+    admin: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    user = get_user(db, user_id)
+
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found",
+        )
+
+    try:
+        return update_user(
+            db,
+            user,
+            username=user_data.username,
+            is_active=user_data.is_active,
+            role=user_data.role,
+        )
+    except IntegrityError:
+        raise HTTPException(
+            status_code=409,
+            detail="Username already exists",
+        )
+
+@app.delete("/admin/users/{user_id}", response_model=UserResponse)
+def deactivate_user_admin(
+    user_id: int,
+    admin: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    user = get_user(db, user_id)
+
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found",
+        )
+
+    return deactivate_user(db, user)
