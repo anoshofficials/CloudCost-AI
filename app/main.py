@@ -36,9 +36,6 @@ def root():
     return {
         "message": f"{settings.APP_NAME} is running!"
     }
-
-
-
 @app.post("/auth/login", response_model=TokenResponse)
 def login(
     credentials: LoginRequest,
@@ -58,6 +55,12 @@ def login(
             detail="Invalid email or password",
         )
 
+    if not user.is_active:
+        raise HTTPException(
+            status_code=403,
+            detail="User account is inactive",
+        )
+
     access_token = create_access_token(
         {"sub": user.email}
     )
@@ -66,7 +69,6 @@ def login(
         "access_token": access_token,
         "token_type": "bearer",
     }
-
 @app.get("/health")
 def health_check():
     return {
