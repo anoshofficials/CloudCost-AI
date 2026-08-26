@@ -1,4 +1,4 @@
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Query
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from app.auth import create_access_token, get_current_user_email
@@ -157,8 +157,9 @@ def get_user_api(
 
 @app.get("/users", response_model=list[UserResponse])
 def list_users(
-   skip: int = 0,
-    limit: int = 100,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=100),
+    email: str = Depends(get_current_user_email),
     db: Session = Depends(get_db),
 ):
     return get_users(db, skip=skip, limit=limit)
